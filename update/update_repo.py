@@ -28,6 +28,8 @@ from zipfile import ZipFile
 
 FLAGS = flags.FLAGS
 
+REQUEST_TIMEOUT_SECONDS = 30
+
 
 flags.DEFINE_bool(
     "skip_existing",
@@ -39,7 +41,7 @@ flags.DEFINE_bool("explode_zip_files", True, "Whether to unzip any zip assets.")
 flags.DEFINE_integer("icon_limit", 0, "If > 0, the max # of icons to process.")
 
 
-_METADATA_URL = "http://fonts.google.com/metadata/icons?incomplete=1"
+_METADATA_URL = "https://fonts.google.com/metadata/icons?incomplete=1"
 
 
 class Asset(NamedTuple):
@@ -101,7 +103,7 @@ _SET_ASSETS = (
 
 
 def _latest_metadata():
-    resp = requests.get(_METADATA_URL)
+    resp = requests.get(_METADATA_URL, timeout=REQUEST_TIMEOUT_SECONDS)
     resp.raise_for_status()
     raw_json = resp.text[5:]
     return json.loads(raw_json)
@@ -136,7 +138,7 @@ def _create_fetch(asset, args):
 
 
 def _do_fetch(fetch):
-    resp = requests.get(fetch.src_url)
+    resp = requests.get(fetch.src_url, timeout=REQUEST_TIMEOUT_SECONDS)
     resp.raise_for_status()
     fetch.dest_file.parent.mkdir(parents=True, exist_ok=True)
     fetch.dest_file.write_bytes(resp.content)

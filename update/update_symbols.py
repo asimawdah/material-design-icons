@@ -30,13 +30,15 @@ import os
 
 FLAGS = flags.FLAGS
 
+REQUEST_TIMEOUT_SECONDS = 30
+
 
 flags.DEFINE_bool("fetch", True, "Whether we can attempt to download assets.")
 flags.DEFINE_bool("overwrite", False, "Update and overwrite existing assets.")
 flags.DEFINE_integer("icon_limit", 0, "If > 0, the max # of icons to process.")
 
 
-_METADATA_URL = "http://fonts.google.com/metadata/icons?incomplete=1&key=material_symbols"
+_METADATA_URL = "https://fonts.google.com/metadata/icons?incomplete=1&key=material_symbols"
 
 
 class Asset(NamedTuple):
@@ -85,7 +87,7 @@ _SET_ASSETS = (
 )
 
 def _latest_metadata():
-    resp = requests.get(_METADATA_URL)
+    resp = requests.get(_METADATA_URL, timeout=REQUEST_TIMEOUT_SECONDS)
     resp.raise_for_status()
     raw_json = resp.text[5:]
     return json.loads(raw_json)
@@ -130,7 +132,7 @@ def _do_fetch_delayed(src_url, dest_file, i, total):
 
 def _do_fetch(src_url, dest_file):
     try :
-        resp = requests.get(src_url, headers = _HEADERS)
+        resp = requests.get(src_url, headers=_HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
         resp.raise_for_status()
         dest_file.parent.mkdir(parents=True, exist_ok=True)
         dest_file.write_bytes(resp.content)
